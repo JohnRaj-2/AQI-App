@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>India AQI Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app">
+    <h1>🌍 India AQI Tracker</h1>
+    <p class="subtitle">Check real-time air quality anywhere in India</p>
+
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="Enter city name (Delhi, Mumbai...)">
+      <button onclick="getCityAQI()">Check AQI</button>
+      <button class="location-btn" onclick="getLiveLocation()">📍 Use My Location</button>
+    </div>
+
+    <div id="result" class="result hidden">
+      <h2 id="cityName"></h2>
+      <div class="aqi-circle" id="aqiCircle">
+        <span id="aqiValue"></span>
+        <small>AQI</small>
+      </div>
+
+      <div class="status" id="aqiStatus"></div>
+
+      <div class="details">
+        <div>PM2.5: <span id="pm25"></span></div>
+        <div>PM10: <span id="pm10"></span></div>
+        <div>CO: <span id="co"></span></div>
+        <div>NO₂: <span id="no2"></span></div>
+        <div>SO₂: <span id="so2"></span></div>
+        <div>O₃: <span id="o3"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

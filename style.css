@@ -1,0 +1,96 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #1d2671, #c33764);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+}
+
+.app {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  width: 380px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+.subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 20px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+.search-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  background: #00e5ff;
+  color: #000;
+}
+
+.location-btn {
+  background: #ffea00 !important;
+}
+
+.result {
+  margin-top: 25px;
+}
+
+.hidden {
+  display: none;
+}
+
+.aqi-circle {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  margin: 15px auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: bold;
+  background: green;
+}
+
+.aqi-circle small {
+  font-size: 14px;
+}
+
+.status {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  font-size: 14px;
+}
