@@ -1,7 +1,45 @@
-// ✅ YOUR API KEY (already added)
-const API_KEY = "90ea847d3ee5733d1dd879f703b5ff6b";
+// ✅ YOUR API KEY 
+const API_KEY = "db5016a6b0cfa2d922a63d9737a37f2e";
 
-// ================= CITY SEARCH =================
+/* =====================================================
+   CPCB AQI CALCULATION HELPERS (INDIAN STANDARD)
+===================================================== */
+
+const pm25Breakpoints = [
+  { cLow: 0, cHigh: 30, aLow: 0, aHigh: 50 },
+  { cLow: 31, cHigh: 60, aLow: 51, aHigh: 100 },
+  { cLow: 61, cHigh: 90, aLow: 101, aHigh: 200 },
+  { cLow: 91, cHigh: 120, aLow: 201, aHigh: 300 },
+  { cLow: 121, cHigh: 250, aLow: 301, aHigh: 400 },
+  { cLow: 251, cHigh: 500, aLow: 401, aHigh: 500 }
+];
+
+const pm10Breakpoints = [
+  { cLow: 0, cHigh: 50, aLow: 0, aHigh: 50 },
+  { cLow: 51, cHigh: 100, aLow: 51, aHigh: 100 },
+  { cLow: 101, cHigh: 250, aLow: 101, aHigh: 200 },
+  { cLow: 251, cHigh: 350, aLow: 201, aHigh: 300 },
+  { cLow: 351, cHigh: 430, aLow: 301, aHigh: 400 },
+  { cLow: 431, cHigh: 600, aLow: 401, aHigh: 500 }
+];
+
+function calculateCPCBAQI(pm, breakpoints) {
+  for (let bp of breakpoints) {
+    if (pm >= bp.cLow && pm <= bp.cHigh) {
+      return Math.round(
+        ((bp.aHigh - bp.aLow) / (bp.cHigh - bp.cLow)) *
+          (pm - bp.cLow) +
+          bp.aLow
+      );
+    }
+  }
+  return 500;
+}
+
+/* =====================================================
+   CITY SEARCH
+===================================================== */
+
 async function getCityAQI() {
   const city = document.getElementById("cityInput").value.trim();
 
@@ -11,7 +49,6 @@ async function getCityAQI() {
   }
 
   try {
-    // 1️⃣ Get latitude & longitude from city name
     const geoResponse = await fetch(
       `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${API_KEY}`
     );
@@ -26,8 +63,6 @@ async function getCityAQI() {
     }
 
     const { lat, lon, name } = geoData[0];
-
-    // 2️⃣ Fetch AQI
     fetchAQI(lat, lon, name);
 
   } catch (error) {
@@ -36,7 +71,10 @@ async function getCityAQI() {
   }
 }
 
-// ================= LIVE LOCATION =================
+/* =====================================================
+   LIVE LOCATION
+===================================================== */
+
 function getLiveLocation() {
   if (!navigator.geolocation) {
     alert("Geolocation not supported");
@@ -44,18 +82,22 @@ function getLiveLocation() {
   }
 
   navigator.geolocation.getCurrentPosition(
-    (position) => {
+    async (position) => {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      fetchAQI(lat, lon, "Your Location");
+
+      const locationName = await getLocationName(lat, lon);
+      fetchAQI(lat, lon, locationName);
     },
-    () => {
-      alert("Location permission denied");
-    }
+    () => alert("Location permission denied")
   );
 }
 
-// ================= AQI FETCH =================
+
+/* =====================================================
+   AQI FETCH + INDIAN AQI LOGIC
+===================================================== */
+
 async function fetchAQI(lat, lon, locationName) {
   try {
     const response = await fetch(
@@ -65,16 +107,19 @@ async function fetchAQI(lat, lon, locationName) {
     if (!response.ok) throw new Error("AQI API failed");
 
     const data = await response.json();
-
-    const aqi = data.list[0].main.aqi;
     const c = data.list[0].components;
+
+    // Calculate Indian AQI
+    const aqiPM25 = calculateCPCBAQI(c.pm2_5, pm25Breakpoints);
+    const aqiPM10 = calculateCPCBAQI(c.pm10, pm10Breakpoints);
+    const indianAQI = Math.max(aqiPM25, aqiPM10);
 
     // Show UI
     document.getElementById("result").classList.remove("hidden");
     document.getElementById("cityName").innerText = locationName;
-    document.getElementById("aqiValue").innerText = aqi;
+    document.getElementById("aqiValue").innerText = indianAQI;
 
-    setAQIStyle(aqi);
+    setIndianAQIStyle(indianAQI);
 
     // Pollutants
     document.getElementById("pm25").innerText = c.pm2_5;
@@ -90,25 +135,53 @@ async function fetchAQI(lat, lon, locationName) {
   }
 }
 
-// ================= AQI COLORS & STATUS =================
-function setAQIStyle(aqi) {
+/* =====================================================
+   INDIAN AQI COLORS + EMOJIS
+===================================================== */
+
+function setIndianAQIStyle(aqi) {
   const circle = document.getElementById("aqiCircle");
   const status = document.getElementById("aqiStatus");
 
-  if (aqi === 1) {
-    circle.style.background = "#00e676";
-    status.innerText = "Good (Clean Air)";
-  } else if (aqi === 2) {
-    circle.style.background = "#ffee58";
-    status.innerText = "Fair";
-  } else if (aqi === 3) {
-    circle.style.background = "#ff9800";
-    status.innerText = "Moderate";
-  } else if (aqi === 4) {
-    circle.style.background = "#f44336";
-    status.innerText = "Poor";
-  } else if (aqi === 5) {
-    circle.style.background = "#6a1b9a";
-    status.innerText = "Very Poor";
+  if (aqi <= 50) {
+    circle.style.background = "#009966";
+    status.innerText = "Good 😊";
+  } else if (aqi <= 100) {
+    circle.style.background = "#ffde33";
+    status.innerText = "Satisfactory 🙂";
+  } else if (aqi <= 200) {
+    circle.style.background = "#ff9933";
+    status.innerText = "Moderate 😐";
+  } else if (aqi <= 300) {
+    circle.style.background = "#cc0033";
+    status.innerText = "Poor 😷";
+  } else if (aqi <= 400) {
+    circle.style.background = "#660099";
+    status.innerText = "Very Poor 🤒";
+  } else {
+    circle.style.background = "#7e0023";
+    status.innerText = "Severe ☠️";
+  }
+}
+
+async function getLocationName(lat, lon) {
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`
+    );
+
+    if (!res.ok) throw new Error("Reverse geo failed");
+
+    const data = await res.json();
+
+    if (data && data.length > 0) {
+      const place = data[0];
+      return `${place.name}, ${place.state || ""}`;
+    }
+
+    return "Your Location";
+  } catch (err) {
+    console.error(err);
+    return "Your Location";
   }
 }
